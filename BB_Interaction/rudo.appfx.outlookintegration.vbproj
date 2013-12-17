@@ -342,6 +342,11 @@
   <ItemGroup>
     <None Include="Resources\group.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="BB Specs\RUDO_Interaction_Fundraiser_Data_List.xml" />
+    <Content Include="BB Specs\RUDO_Prospect_Plan_Fundraisers.xml" />
+    <Content Include="BB Specs\RUDO_USP_DATALIST_INTERACTION_PARTICIPANTS.xml" />
+  </ItemGroup>
   <!-- Include the build rules for a Visual Basic project. -->
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <!-- Include additional build rules for an Office application add-in. -->
