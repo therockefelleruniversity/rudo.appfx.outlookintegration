@@ -1,0 +1,31 @@
+<SimpleDataListSpec 
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    ID="5ec35496-8035-4fb7-a565-33c90f71ae75"
+    Name="RUDO Prospect Plan Fundraisers"
+    Description="List of GUIDS of Fundraisers for a Prospect Plan"
+    Author="The Rockefeller University"
+    TranslationFunctionID="ec1bc00b-fc28-435a-a6ad-07938211558f"
+    xmlns="bb_appfx_simpledatalist"
+    >
+  <SPSimpleList SPName="RUDO_USP_PROSPECTPLAN_FUNDRAISERS">
+    <CreateProcedureSQL xmlns="bb_appfx_commontypes">
+			
+create procedure dbo.RUDO_USP_PROSPECTPLAN_FUNDRAISERS(@PLANID uniqueidentifier)
+as
+	set nocount on;
+
+	select ID AS VALUE,
+  FUNDRAISERROLE AS LABEL
+	from dbo.UFN_PROSPECTPLAN_FUNDRAISERS(@PLANID)
+			
+		</CreateProcedureSQL>
+  </SPSimpleList>
+  <Parameters>
+    <FormMetaData xmlns="bb_appfx_commontypes">
+      <FormFields>
+        <FormField FieldID="PLANID" DataType="Guid" Caption="Prospect Plan ID" />
+      </FormFields>
+    </FormMetaData>
+  </Parameters>
+</SimpleDataListSpec>

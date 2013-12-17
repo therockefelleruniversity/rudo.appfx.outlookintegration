@@ -1,0 +1,29 @@
+<DataListSpec 
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    ID="5b15ec2b-8c15-4a76-b88a-222c0c399a69"
+    Name="RUDO Interaction Fundraiser Data List"
+    Description="Returns GUID of the Interaction Owner for a specified Interaction"
+    Author="The Rockefeller University"
+    xmlns="bb_appfx_datalist"
+    >
+  <SPDataList SPName="RUDO_USP_DATALIST_INTERACTION_FUNDRAISER">
+    <CreateProcedureSQL xmlns="bb_appfx_commontypes">
+			
+create procedure dbo.RUDO_USP_DATALIST_INTERACTION_FUNDRAISER(@INTERACTIONID uniqueidentifier)
+as
+	set nocount on;
+
+	select FUNDRAISERID
+	from dbo.INTERACTION
+	where ID = @INTERACTIONID
+			
+		</CreateProcedureSQL>
+  </SPDataList>
+  <Context ContextRecordType="Interaction" RecordIDParameter="INTERACTIONID" />
+  <Output>
+    <OutputFields>
+      <OutputField FieldID="FUNDRAISERID" Caption="ID" IsHidden="true" DataType="Guid" />
+    </OutputFields>
+  </Output>
+</DataListSpec>

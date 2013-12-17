@@ -1,0 +1,29 @@
+<DataListSpec 
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    ID="65a4f80f-95f7-4164-b27b-b6327fce96c2"
+    Name="RUDO_USP_DATALIST_INTERACTION_PARTICIPANTS"
+    Description="Data List Returning all Participants for an Interaction"
+    Author="The Rockefeller University"
+    xmlns="bb_appfx_datalist"
+    >
+  <SPDataList SPName="RUDO_USP_DATALIST_INTERACTION_PARTICIPANTS">
+    <CreateProcedureSQL xmlns="bb_appfx_commontypes">
+			
+create procedure dbo.RUDO_USP_DATALIST_INTERACTION_PARTICIPANTS(@INTERACTIONID uniqueidentifier)
+as
+	set nocount on;
+
+	select CONSTITUENTID
+	from dbo.INTERACTIONPARTICIPANT
+	where INTERACTIONID = @INTERACTIONID
+			
+		</CreateProcedureSQL>
+  </SPDataList>
+  <Context ContextRecordType="Interaction" RecordIDParameter="INTERACTIONID" />
+  <Output>
+    <OutputFields>
+      <OutputField FieldID="CONSTITUENTID" Caption="ID" IsHidden="true" DataType="Guid" />
+    </OutputFields>
+  </Output>
+</DataListSpec>
