@@ -14,14 +14,12 @@ Friend NotInheritable Class BBECHelper
 
     Protected Friend Const dbUser As String = ""
     Protected Friend Const dbPwd As String = ""
+    Private Shared _provider As AppFxWebServiceProvider
 
     Private Sub New()
     End Sub
 
-    Private Shared _provider As AppFxWebServiceProvider
-
     Friend Shared Function GetProvider() As AppFxWebServiceProvider
-
         If _provider Is Nothing Then
             _provider = New Blackbaud.AppFx.WebAPI.AppFxWebServiceProvider
             _provider.Url = String.Concat(serviceUrlBasePath, "appfxwebservice.asmx")
@@ -30,7 +28,6 @@ Friend NotInheritable Class BBECHelper
         End If
 
         Return _provider
-
     End Function
 
     Friend Shared Sub AddInteraction(ByVal item As Outlook.MailItem, ByVal constituentId As Guid)
@@ -109,8 +106,6 @@ Friend NotInheritable Class BBECHelper
                 End If
             End If
 
-
-
         Catch ex As Exception
             BBECHelper.HandleException("There was an error showing the Add Interaction form", ex)
 
@@ -118,8 +113,8 @@ Friend NotInheritable Class BBECHelper
             _provider = Nothing
 
         End Try
-
     End Sub
+    
     Friend Shared Sub AddProspect(ByVal item As Outlook.MailItem, ByVal constituentId As Guid, ByVal intChoice As Integer)
         Dim intOwner As Guid = GetFundRaiserId()
         Dim intOwnerExists As Boolean = False
@@ -285,8 +280,6 @@ Friend NotInheritable Class BBECHelper
                 End If
             End If
 
-
-
         Catch ex As Exception
             BBECHelper.HandleException("There was an error showing the Add Prospect Plan Step form", ex)
 
@@ -294,8 +287,8 @@ Friend NotInheritable Class BBECHelper
             _provider = Nothing
 
         End Try
-
     End Sub
+    
     Friend Shared Function SearchConstituent(ByVal intName As String) As Guid
         Dim vConstituentID As New Guid()
         Dim nameArray As Array
@@ -327,8 +320,8 @@ Friend NotInheritable Class BBECHelper
             _provider = Nothing
 
         End Try
-
     End Function
+    
     Friend Shared Function SearchProspect(ByVal intName As String) As Guid
         Dim vProspectID As New Guid()
         Dim nameArray As Array
@@ -360,13 +353,11 @@ Friend NotInheritable Class BBECHelper
             _provider = Nothing
 
         End Try
-
     End Function
+    
     Friend Shared Function GetConstituentId(ByVal item As Outlook.MailItem) As Guid
-
         Dim emailAddress = ResolveEmailAddress(item)
         Return GetConstituentId(emailAddress)
-
     End Function
 
     Friend Shared Function GetConstituentId(ByVal emailAddress As String) As Guid
@@ -405,14 +396,11 @@ Friend NotInheritable Class BBECHelper
         End Try
 
         Return consGUID
-
     End Function
 
     Friend Shared Function GetFundRaiserId() As Guid
-
         Dim emailAddress = String.Concat(Environment.UserName, "@rockefeller.edu")
         Return GetConstituentId(emailAddress)
-
     End Function
 
     Friend Shared Function ResolveEmailAddress(ByVal item As Outlook.MailItem) As String
@@ -432,8 +420,8 @@ Friend NotInheritable Class BBECHelper
 
         'Return SMTP address of external address
         Return Replace(item.SenderEmailAddress, "@mail.rockefeller.edu", "@rockefeller.edu")
-
     End Function
+    
     Friend Shared Function GetSMTPSenderRecipient(ByVal item As Outlook.Recipients, ByVal item2 As Outlook.MailItem) As String
         Dim exUser As Outlook.ExchangeUser
         Dim intEmail As String = Nothing
@@ -467,8 +455,8 @@ Friend NotInheritable Class BBECHelper
         End If
 
         Return intEmail
-
     End Function
+    
     Friend Shared Function GetInteractionName(ByVal item As Outlook.MailItem) As String
         Dim intName As String
         Dim currentUser As Outlook.AddressEntry = item.Session.CurrentUser.AddressEntry
@@ -490,33 +478,27 @@ Friend NotInheritable Class BBECHelper
         End Try
 
         Return intName
-
     End Function
 
     Friend Shared Function GetDataFormWebHostDialog() As DataFormWebHostDialog
-
         Dim form = New DataFormWebHostDialog
         form.ServiceUrlBasePath = serviceUrlBasePath
         form.DatabaseName = databaseName
         form.ApplicationTitle = applicationTitle
         form.Credentials = New System.Net.NetworkCredential(dbUser, dbPwd, Environment.UserDomainName)
         Return form
-
     End Function
 
     Friend Shared Function GetSearchFormWebHostDialog() As SearchFormWebHostDialog
-
         Dim form = New SearchFormWebHostDialog
         form.ServiceUrlBasePath = serviceUrlBasePath
         form.DatabaseName = databaseName
         form.ApplicationTitle = applicationTitle
         form.Credentials = New System.Net.NetworkCredential(dbUser, dbPwd, Environment.UserDomainName)
         Return form
-
     End Function
 
     Friend Shared Sub ConstituentExists(ByVal item As Outlook.MailItem, ByVal inType As Integer)
-
         Dim intReturnValue As Integer
         Dim intChoiceValue As Integer
         Dim vConstituentID As New Guid()
@@ -576,32 +558,6 @@ Friend NotInheritable Class BBECHelper
             If String.IsNullOrEmpty(vConstituentID.ToString) Then Return
             BBECHelper.AddProspect(item, vConstituentID, intChoiceValue)
         End If
-
-    End Sub
-
-    Friend Shared Sub TagConstituent(ByVal item As Outlook.MailItem, ByVal constituentId As Guid, ByVal constituentName As String)
-
-        If item Is Nothing Then Return
-
-        Try
-            Dim provider = GetProvider()
-
-            Dim req = DataFormServices.CreateDataFormSaveRequest(provider, New Guid("d286b10f-2d65-4603-991e-bf322f37a9a6"))
-            req.ContextRecordID = item.EntryID
-
-            Dim dfi = New Blackbaud.AppFx.XmlTypes.DataForms.DataFormItem
-            dfi.SetValue("CONSTITUENTID", constituentId)
-            req.DataFormItem = dfi
-
-            DataFormServices.SaveData(provider, req)
-
-            MsgBox(String.Format("{0} was tagged on this email.", constituentName), vbInformation, applicationTitle)
-
-        Catch ex As Exception
-            HandleException("There was an error tagging this constituent", ex)
-
-        End Try
-
     End Sub
 
     Friend Shared Function SplitCustName(ByVal strNameIn As String) As Array
@@ -710,7 +666,6 @@ Friend NotInheritable Class BBECHelper
         nameOut.SetValue(strLNameOut, 1)
 
         Return nameOut
-
     End Function
 
     Friend Shared Function CreateParticipants(ByVal item As Outlook.MailItem, ByVal ccCount As Integer) As List(Of ParticipantGUIDStruct)
@@ -762,7 +717,6 @@ Friend NotInheritable Class BBECHelper
         End Try
 
         Return ccName
-
     End Function
 
     Friend Shared Function CollectionToDataFormFieldValue(ByVal inParticipants As List(Of ParticipantGUIDStruct), ByVal CollectionKey As String, ByVal anyConstituent As Guid, ByVal anyOwner As Guid) As Blackbaud.AppFx.XmlTypes.DataForms.DataFormItemArrayValue
