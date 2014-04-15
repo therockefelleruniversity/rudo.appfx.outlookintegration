@@ -166,7 +166,8 @@
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>RUDO_Key.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <!--
     This section specifies references for the project.
@@ -297,8 +298,6 @@
     <EmbeddedResource Include="ProspectPlanList.resx">
       <DependentUpon>ProspectPlanList.vb</DependentUpon>
     </EmbeddedResource>
-    <None Include="Blackbaud Outlook Plug In_TemporaryKey.pfx" />
-    <None Include="RUDO_Key.snk" />
     <None Include="ThisAddIn.Designer.xml">
       <DependentUpon>ThisAddIn.vb</DependentUpon>
     </None>

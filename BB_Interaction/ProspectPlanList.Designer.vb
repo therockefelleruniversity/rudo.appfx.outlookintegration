@@ -33,16 +33,16 @@ Partial Class ProspectPlanList
         '
         'lvPlans
         '
-        Me.lvPlans.Location = New System.Drawing.Point(39, 41)
+        Me.lvPlans.Location = New System.Drawing.Point(87, 41)
         Me.lvPlans.Name = "lvPlans"
-        Me.lvPlans.Size = New System.Drawing.Size(586, 97)
+        Me.lvPlans.Size = New System.Drawing.Size(689, 97)
         Me.lvPlans.TabIndex = 0
         Me.lvPlans.UseCompatibleStateImageBehavior = False
         '
         'BTN_SELECTED
         '
         Me.BTN_SELECTED.Enabled = False
-        Me.BTN_SELECTED.Location = New System.Drawing.Point(157, 157)
+        Me.BTN_SELECTED.Location = New System.Drawing.Point(248, 157)
         Me.BTN_SELECTED.Name = "BTN_SELECTED"
         Me.BTN_SELECTED.Size = New System.Drawing.Size(114, 23)
         Me.BTN_SELECTED.TabIndex = 1
@@ -51,7 +51,7 @@ Partial Class ProspectPlanList
         '
         'BTN_CANCEL
         '
-        Me.BTN_CANCEL.Location = New System.Drawing.Point(389, 157)
+        Me.BTN_CANCEL.Location = New System.Drawing.Point(480, 157)
         Me.BTN_CANCEL.Name = "BTN_CANCEL"
         Me.BTN_CANCEL.Size = New System.Drawing.Size(75, 23)
         Me.BTN_CANCEL.TabIndex = 2
@@ -62,7 +62,7 @@ Partial Class ProspectPlanList
         '
         Me.lblProspectPlan.AutoSize = True
         Me.lblProspectPlan.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblProspectPlan.Location = New System.Drawing.Point(153, 9)
+        Me.lblProspectPlan.Location = New System.Drawing.Point(265, 9)
         Me.lblProspectPlan.Name = "lblProspectPlan"
         Me.lblProspectPlan.Size = New System.Drawing.Size(311, 20)
         Me.lblProspectPlan.TabIndex = 3
@@ -72,7 +72,7 @@ Partial Class ProspectPlanList
         '
         Me.lvPlanSteps.Location = New System.Drawing.Point(39, 168)
         Me.lvPlanSteps.Name = "lvPlanSteps"
-        Me.lvPlanSteps.Size = New System.Drawing.Size(586, 10)
+        Me.lvPlanSteps.Size = New System.Drawing.Size(821, 10)
         Me.lvPlanSteps.TabIndex = 4
         Me.lvPlanSteps.UseCompatibleStateImageBehavior = False
         Me.lvPlanSteps.Visible = False
@@ -80,7 +80,7 @@ Partial Class ProspectPlanList
         'BTN_STEP
         '
         Me.BTN_STEP.Enabled = False
-        Me.BTN_STEP.Location = New System.Drawing.Point(157, 157)
+        Me.BTN_STEP.Location = New System.Drawing.Point(248, 157)
         Me.BTN_STEP.Name = "BTN_STEP"
         Me.BTN_STEP.Size = New System.Drawing.Size(114, 23)
         Me.BTN_STEP.TabIndex = 5
@@ -93,7 +93,7 @@ Partial Class ProspectPlanList
         Me.cmbStepChoice.CausesValidation = False
         Me.cmbStepChoice.Enabled = False
         Me.cmbStepChoice.FormattingEnabled = True
-        Me.cmbStepChoice.Items.AddRange(New Object() {"Planned Steps", "Completed Steps"})
+        Me.cmbStepChoice.Items.AddRange(New Object() {"All Steps", "Planned Steps", "Completed Steps"})
         Me.cmbStepChoice.Location = New System.Drawing.Point(39, 143)
         Me.cmbStepChoice.Name = "cmbStepChoice"
         Me.cmbStepChoice.Size = New System.Drawing.Size(201, 21)
@@ -104,7 +104,7 @@ Partial Class ProspectPlanList
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(673, 196)
+        Me.ClientSize = New System.Drawing.Size(872, 192)
         Me.Controls.Add(Me.cmbStepChoice)
         Me.Controls.Add(Me.lvPlanSteps)
         Me.Controls.Add(Me.lblProspectPlan)

@@ -1,6 +1,8 @@
 ﻿Imports System.Windows.Forms
 Imports Blackbaud.AppFx.WebAPI.ServiceProxy
 Imports Blackbaud.AppFx.XmlTypes.DataForms
+Imports Blackbaud.AppFx.XmlTypes
+Imports System.Globalization
 
 Public Class ProspectPlanList
     Private _appFx As Blackbaud.AppFx.WebAPI.ServiceProxy.AppFxWebService
@@ -14,6 +16,7 @@ Public Class ProspectPlanList
     Protected Friend _prospectParticipants As List(Of Guid) = New List(Of Guid)
     Protected Friend _prospectFundraisers As List(Of String) = New List(Of String)
     Protected Friend _prospectStepOwner As String = ""
+    Protected Friend _prospectStepComment As String = ""
     Private _provider As Blackbaud.AppFx.WebAPI.AppFxWebServiceProvider
     Protected Friend _intChoice As Integer = 2
 
@@ -31,7 +34,7 @@ Public Class ProspectPlanList
         Return mySP
 
     End Function
-   
+
     Private Function GetNetworkCredentials() As System.Net.ICredentials
         Dim securelyStoredUserName, securelyStoredPassword, securelyStoredDomain As String
 
@@ -61,6 +64,8 @@ Public Class ProspectPlanList
         Reply = Blackbaud.AppFx.MajorGiving.Catalog.WebApiClient.DataLists.Constituent.ProspectPlanList.LoadResults(_provider, Req)
 
         DisplayDataListReplyRowsInListView(Reply, lvPlans)
+        MovePlanColumn(8, 1)
+        Me.AutoSize = True
 
     End Sub
     Private Sub LoadSteps()
@@ -79,8 +84,10 @@ Public Class ProspectPlanList
                 .DataListID = New Guid("cef6accb-ab60-4e93-8bb3-2098519458d6")
             ElseIf cmbStepChoice.SelectedItem = "Completed Steps" Then
                 .DataListID = New Guid("376023AC-0557-4049-89FC-6105E1F5F534")
+            ElseIf cmbStepChoice.SelectedItem = "All Steps" Then
+                .DataListID = New Guid("db71e83f-ffd5-4b24-833e-8f55ab8ad657")
             Else
-                .DataListID = New Guid("cef6accb-ab60-4e93-8bb3-2098519458d6")
+                .DataListID = New Guid("db71e83f-ffd5-4b24-833e-8f55ab8ad657")
             End If
 
             .ContextRecordID = prospectPlan
@@ -124,6 +131,7 @@ Public Class ProspectPlanList
             getStepProspects()
             GetProspectPlanStepOwner()
             GetProspectFundRaisers()
+            GetProspectPlanComment()
             Me.Close()
         Else
             MsgBox("No Prospect Plan Steps Have Been Loaded")
@@ -204,10 +212,12 @@ Public Class ProspectPlanList
             Cursor.Current = Cursors.WaitCursor
             Cursor.Show()
 
+
             With ListView
                 .View = View.Details
                 .FullRowSelect = True
                 .Clear()
+                .SuspendLayout()
             End With
 
             If (Reply.Rows IsNot Nothing) Then
@@ -219,16 +229,27 @@ Public Class ProspectPlanList
                     End If
                 Next
 
+
                 For Each row As Blackbaud.AppFx.WebAPI.ServiceProxy.DataListResultRow In Reply.Rows
                     ListView.Items.Add(New ListViewItem(row.Values))
                 Next
 
                 ListView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize)
+
                 For Each f As Blackbaud.AppFx.XmlTypes.DataListOutputFieldType In Reply.MetaData.OutputDefinition.OutputFields
-                    If f.IsHidden = True Then
+                    'Hide Sites column and any column marked as hidden in the datalist
+                    If f.IsHidden = True Or f.Caption = "Sites" Or f.Caption = "Participants" Then
                         ListView.Columns(f.FieldID).Width = 0
                     End If
+                    'If column is datetime datatype, format as dd/MM/yyyy
+                    If f.DataType = FormFieldDataType.Date Then
+                        For Each itm As ListViewItem In ListView.Items
+                            itm.SubItems(ListView.Columns(f.FieldID).Index).Text = Convert.ToDateTime(itm.SubItems(ListView.Columns(f.FieldID).Index).Text).ToString("d")
+                        Next
+                    End If
                 Next
+
+                ListView.ResumeLayout()
 
                 If ListView.Equals(lvPlans) Then
                     _prospectLoaded = True
@@ -274,9 +295,10 @@ Public Class ProspectPlanList
             If _intChoice = 3 Then
                 GetProspectPlanID()
                 lblProspectPlan.Text = "Select a Prospect Plan Step to Edit"
-                cmbStepChoice.SelectedItem = "Planned Steps"
+                cmbStepChoice.SelectedItem = "All Steps"
                 cmbStepChoice.Enabled = True
                 LoadSteps()
+
             End If
         End If
 
@@ -352,6 +374,75 @@ Public Class ProspectPlanList
         End If
 
     End Sub
+    Private Sub GetProspectPlanComment()
 
+        Dim prospectPlanStep As String = _planStepID
+        Dim Req As New Blackbaud.AppFx.WebAPI.ServiceProxy.DataListLoadRequest
+        Dim Reply As New Blackbaud.AppFx.WebAPI.ServiceProxy.DataListLoadReply
+
+        _clientAppInfoHeader = New Blackbaud.AppFx.WebAPI.ServiceProxy.ClientAppInfoHeader
+        _clientAppInfoHeader.ClientAppName = "CustomEventManager"
+        _clientAppInfoHeader.REDatabaseToUse = BBECHelper.databaseName
+
+        With Req
+            .ClientAppInfo = _clientAppInfoHeader
+            .DataListID = New Guid("662cb787-634d-4a39-92fc-89bbda206906")
+            .ContextRecordID = prospectPlanStep
+            .IncludeMetaData = False
+        End With
+
+        Reply = _provider.CreateAppFxWebService.DataListLoad(Req)
+
+        If (Reply.Rows IsNot Nothing) Then
+            For Each row As Blackbaud.AppFx.WebAPI.ServiceProxy.DataListResultRow In Reply.Rows
+                If (row.Values.GetValue(0) IsNot Nothing) Then
+                    _prospectStepComment = row.Values.GetValue(0).ToString
+                End If
+            Next
+        End If
+
+    End Sub
+
+    Private Sub MovePlanColumn(ByVal oldIndex As Integer, ByVal newIndex As Integer)
+
+        Me.lvPlans.BeginUpdate()
+
+        Dim column As ColumnHeader = Me.lvPlans.Columns(oldIndex)
+        'Move the column header.
+        Me.lvPlans.Columns.Remove(column)
+        Me.lvPlans.Columns.Insert(newIndex, column)
+
+        Dim subitem As ListViewItem.ListViewSubItem
+        'Move all the subitems in the column.
+        For Each item As ListViewItem In Me.lvPlans.Items
+            subitem = item.SubItems(oldIndex)
+            item.SubItems.Remove(subitem)
+            item.SubItems.Insert(newIndex, subitem)
+        Next item
+
+        Me.lvPlans.EndUpdate()
+
+    End Sub
+
+    Private Sub MovePlanStepColumn(ByVal oldIndex As Integer, ByVal newIndex As Integer)
+
+        Me.lvPlanSteps.BeginUpdate()
+
+        Dim column As ColumnHeader = Me.lvPlans.Columns(oldIndex)
+        'Move the column header.
+        Me.lvPlanSteps.Columns.Remove(column)
+        Me.lvPlanSteps.Columns.Insert(newIndex, column)
+
+        Dim subitem As ListViewItem.ListViewSubItem
+        'Move all the subitems in the column.
+        For Each item As ListViewItem In Me.lvPlanSteps.Items
+            subitem = item.SubItems(oldIndex)
+            item.SubItems.Remove(subitem)
+            item.SubItems.Insert(newIndex, subitem)
+        Next item
+
+        Me.lvPlanSteps.EndUpdate()
+
+    End Sub
 
 End Class

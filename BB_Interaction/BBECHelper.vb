@@ -9,17 +9,23 @@ Friend NotInheritable Class BBECHelper
 
     Public Const applicationTitle As String = "Blackbaud CRM"
 
-    Protected Friend Const serviceUrlBasePath As String = ""
-    Protected Friend Const databaseName As String = ""
 
-    Protected Friend Const dbUser As String = ""
-    Protected Friend Const dbPwd As String = ""
+    'Test Values
+    Protected Friend Const serviceUrlBasePath As String = "[URL OF bbappfx]"
+    Protected Friend Const databaseName As String = "[Database Name]"
+
+    Protected Friend Shared _prospectName As String = ""
+
+    Protected Friend Const dbUser As String = "[DB User]"
+    Protected Friend Const dbPwd As String = "[DB Password]"
     Private Shared _provider As AppFxWebServiceProvider
+
 
     Private Sub New()
     End Sub
 
     Friend Shared Function GetProvider() As AppFxWebServiceProvider
+
         If _provider Is Nothing Then
             _provider = New Blackbaud.AppFx.WebAPI.AppFxWebServiceProvider
             _provider.Url = String.Concat(serviceUrlBasePath, "appfxwebservice.asmx")
@@ -28,6 +34,7 @@ Friend NotInheritable Class BBECHelper
         End If
 
         Return _provider
+
     End Function
 
     Friend Shared Sub AddInteraction(ByVal item As Outlook.MailItem, ByVal constituentId As Guid)
@@ -106,6 +113,8 @@ Friend NotInheritable Class BBECHelper
                 End If
             End If
 
+
+
         Catch ex As Exception
             BBECHelper.HandleException("There was an error showing the Add Interaction form", ex)
 
@@ -113,8 +122,8 @@ Friend NotInheritable Class BBECHelper
             _provider = Nothing
 
         End Try
+
     End Sub
-    
     Friend Shared Sub AddProspect(ByVal item As Outlook.MailItem, ByVal constituentId As Guid, ByVal intChoice As Integer)
         Dim intOwner As Guid = GetFundRaiserId()
         Dim intOwnerExists As Boolean = False
@@ -137,19 +146,26 @@ Friend NotInheritable Class BBECHelper
             planDialog = New ProspectPlanList(_provider)
             planDialog._prospectID = constituentId.ToString()
             planDialog._intChoice = intChoice
+            planDialog.Text = _prospectName + "'s Prospect Plans"
+            planDialog.lblProspectPlan.Text = "To Add A Step, Select a Prospect Plan"
 
             If intChoice = 3 Then
-                planDialog.Height = 350
-                planDialog.lvPlanSteps.Height = 97
-                planDialog.BTN_CANCEL.Top = 275
-                planDialog.BTN_STEP.Top = 275
+                planDialog.Height = 500
+                planDialog.Width = 1180
+                planDialog.lvPlans.Left = 187
+                planDialog.lvPlanSteps.Height = 197
+                planDialog.lvPlanSteps.Width = 1000
+                planDialog.BTN_CANCEL.Top = 375
+                planDialog.BTN_STEP.Top = 375
                 planDialog.lvPlanSteps.Visible = True
                 planDialog.BTN_SELECTED.Visible = False
                 planDialog.BTN_STEP.Visible = True
                 planDialog.cmbStepChoice.Visible = True
-                planDialog.lblProspectPlan.Text = "Select a Prospect Plan to Edit a Step"
+                planDialog.lblProspectPlan.Text = "To Update A Step, Select a Prospect Plan"
+                planDialog.lblProspectPlan.Left = 365
             End If
 
+            planDialog.AutoSize = True
             planDialog.ShowDialog()
 
             If Len(planDialog._prospectPlanID) = 0 Then
@@ -163,7 +179,9 @@ Friend NotInheritable Class BBECHelper
             If intChoice = 2 Then
                 form.DataFormInstanceId = New Guid("B6DC6978-CBB4-49CA-9A33-43E0FF635671")
                 form.ContextRecordId = planDialog._prospectPlanID
-                formData.SetValue("OBJECTIVE", Left(item.Subject, 100))
+                formData.SetValue("OBJECTIVE", Left(item.Subject, 100)) 'Set Objective
+                formData.SetValue("INTERACTIONTYPECODEID", Blackbaud.AppFx.Constituent.Catalog.WebApiClient.CodeTables.InteractionType.GetId(provider, "Email")) 'Set Contact Method
+                formData.SetValue("STATUSCODE", 2) 'Set Status
             ElseIf intChoice = 3 Then
                 form.DataFormInstanceId = New Guid("4131F838-FE6E-4796-B7C1-2307366BDF0D")
                 form.RecordId = planDialog._planStepID
@@ -200,11 +218,10 @@ Friend NotInheritable Class BBECHelper
                 formData.Add(New DataFormFieldValue("OWNERID", intOwner))
             End If
 
-            formData.SetValue("STATUSCODE", 2)
-
-            If (item.Sent) Then
+            'Set Actual Date only if New Prospect Plan Step
+            If (item.Sent And intChoice = 2) Then
                 formData.SetValue("ACTUALDATE", item.SentOn.ToShortDateString)
-            Else
+            ElseIf (intChoice = 2) Then
                 formData.SetValue("ACTUALDATE", item.ReceivedTime.ToShortDateString)
             End If
 
@@ -239,12 +256,19 @@ Friend NotInheritable Class BBECHelper
                 End If
             End If
 
-
+            'Build and set Comment
             vComment = BuildNiceHeader(item.Recipients, item) + vbCrLf + item.Subject + vbCrLf + vbCrLf + item.Body
 
-            formData.SetValue("COMMENT", vComment)
-            formData.SetValue("STATUSCODE", 2)
-            formData.SetValue("INTERACTIONTYPECODEID", Blackbaud.AppFx.Constituent.Catalog.WebApiClient.CodeTables.InteractionType.GetId(provider, "Email"))
+            'Set Comment if new Prospect Plan Step
+            If intChoice = 2 Then
+                formData.SetValue("COMMENT", vComment)
+                'Prepend Comment to existing Comment if updating Prospect Plan Step 
+            ElseIf intChoice = 3 Then
+                formData.SetValue("COMMENT", vComment + vbCrLf + planDialog._prospectStepComment)
+            End If
+
+
+            'Set form dialog values
             Dim dfi As New DataFormItem
             dfi.Values = formData
             form.DefaultValues = dfi
@@ -280,6 +304,8 @@ Friend NotInheritable Class BBECHelper
                 End If
             End If
 
+
+
         Catch ex As Exception
             BBECHelper.HandleException("There was an error showing the Add Prospect Plan Step form", ex)
 
@@ -287,8 +313,8 @@ Friend NotInheritable Class BBECHelper
             _provider = Nothing
 
         End Try
+
     End Sub
-    
     Friend Shared Function SearchConstituent(ByVal intName As String) As Guid
         Dim vConstituentID As New Guid()
         Dim nameArray As Array
@@ -299,7 +325,7 @@ Friend NotInheritable Class BBECHelper
             _provider = Nothing
             Dim provider = GetProvider()
             Dim form = BBECHelper.GetSearchFormWebHostDialog()
-            form.SearchListId = New Guid("23c5c603-d7d8-4106-aecc-65392b563887")
+            form.SearchListId = New Guid("fdf9d631-5277-4300-80b3-fdf5fb8850ec")
             Dim formData As New DataFormFieldValueSet
             nameArray = SplitCustName(intName)
             fName = nameArray.GetValue(0)
@@ -320,10 +346,12 @@ Friend NotInheritable Class BBECHelper
             _provider = Nothing
 
         End Try
+
     End Function
-    
     Friend Shared Function SearchProspect(ByVal intName As String) As Guid
         Dim vProspectID As New Guid()
+        Dim vProspectRowValues As System.Collections.ObjectModel.ReadOnlyCollection(Of String)
+        Dim vProspectName As String
         Dim nameArray As Array
         Dim fName As String = ""
         Dim lName As String = ""
@@ -344,6 +372,9 @@ Friend NotInheritable Class BBECHelper
             form.SetSearchCriteria(dfi)
             form.ShowDialog()
             vProspectID = New Guid(form.SelectedRecordId)
+            vProspectRowValues = form.SelectedRowValues
+            vProspectName = vProspectRowValues.ElementAt(1).ToString
+            _prospectName = vProspectName
             Return vProspectID
 
         Catch ex As Exception
@@ -353,11 +384,13 @@ Friend NotInheritable Class BBECHelper
             _provider = Nothing
 
         End Try
+
     End Function
-    
     Friend Shared Function GetConstituentId(ByVal item As Outlook.MailItem) As Guid
+
         Dim emailAddress = ResolveEmailAddress(item)
         Return GetConstituentId(emailAddress)
+
     End Function
 
     Friend Shared Function GetConstituentId(ByVal emailAddress As String) As Guid
@@ -396,11 +429,13 @@ Friend NotInheritable Class BBECHelper
         End Try
 
         Return consGUID
-    End Function
 
+    End Function
     Friend Shared Function GetFundRaiserId() As Guid
+
         Dim emailAddress = String.Concat(Environment.UserName, "@rockefeller.edu")
         Return GetConstituentId(emailAddress)
+
     End Function
 
     Friend Shared Function ResolveEmailAddress(ByVal item As Outlook.MailItem) As String
@@ -420,8 +455,8 @@ Friend NotInheritable Class BBECHelper
 
         'Return SMTP address of external address
         Return Replace(item.SenderEmailAddress, "@mail.rockefeller.edu", "@rockefeller.edu")
+
     End Function
-    
     Friend Shared Function GetSMTPSenderRecipient(ByVal item As Outlook.Recipients, ByVal item2 As Outlook.MailItem) As String
         Dim exUser As Outlook.ExchangeUser
         Dim intEmail As String = Nothing
@@ -455,8 +490,8 @@ Friend NotInheritable Class BBECHelper
         End If
 
         Return intEmail
+
     End Function
-    
     Friend Shared Function GetInteractionName(ByVal item As Outlook.MailItem) As String
         Dim intName As String
         Dim currentUser As Outlook.AddressEntry = item.Session.CurrentUser.AddressEntry
@@ -478,27 +513,33 @@ Friend NotInheritable Class BBECHelper
         End Try
 
         Return intName
+
     End Function
 
     Friend Shared Function GetDataFormWebHostDialog() As DataFormWebHostDialog
+
         Dim form = New DataFormWebHostDialog
         form.ServiceUrlBasePath = serviceUrlBasePath
         form.DatabaseName = databaseName
         form.ApplicationTitle = applicationTitle
         form.Credentials = New System.Net.NetworkCredential(dbUser, dbPwd, Environment.UserDomainName)
         Return form
+
     End Function
 
     Friend Shared Function GetSearchFormWebHostDialog() As SearchFormWebHostDialog
+
         Dim form = New SearchFormWebHostDialog
         form.ServiceUrlBasePath = serviceUrlBasePath
         form.DatabaseName = databaseName
         form.ApplicationTitle = applicationTitle
         form.Credentials = New System.Net.NetworkCredential(dbUser, dbPwd, Environment.UserDomainName)
         Return form
+
     End Function
 
     Friend Shared Sub ConstituentExists(ByVal item As Outlook.MailItem, ByVal inType As Integer)
+
         Dim intReturnValue As Integer
         Dim intChoiceValue As Integer
         Dim vConstituentID As New Guid()
@@ -558,6 +599,7 @@ Friend NotInheritable Class BBECHelper
             If String.IsNullOrEmpty(vConstituentID.ToString) Then Return
             BBECHelper.AddProspect(item, vConstituentID, intChoiceValue)
         End If
+
     End Sub
 
     Friend Shared Function SplitCustName(ByVal strNameIn As String) As Array
@@ -666,6 +708,7 @@ Friend NotInheritable Class BBECHelper
         nameOut.SetValue(strLNameOut, 1)
 
         Return nameOut
+
     End Function
 
     Friend Shared Function CreateParticipants(ByVal item As Outlook.MailItem, ByVal ccCount As Integer) As List(Of ParticipantGUIDStruct)
@@ -717,6 +760,7 @@ Friend NotInheritable Class BBECHelper
         End Try
 
         Return ccName
+
     End Function
 
     Friend Shared Function CollectionToDataFormFieldValue(ByVal inParticipants As List(Of ParticipantGUIDStruct), ByVal CollectionKey As String, ByVal anyConstituent As Guid, ByVal anyOwner As Guid) As Blackbaud.AppFx.XmlTypes.DataForms.DataFormItemArrayValue
